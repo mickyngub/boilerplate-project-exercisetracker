@@ -5,19 +5,20 @@ const bodyParser = require('body-parser')
 const cors = require('cors')
 
 const mongoose = require('mongoose')
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost/exercise-track' , { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 let db = mongoose.connection;
 db.on('error', console.error.bind("connection error"));
 db.once('open', () => console.log("we're in!"));
 
 app.use(cors())
-
-app.use(bodyParser.urlencoded({extended: false}))
-app.use(bodyParser.json())
+app.use("", bodyParser.urlencoded({"extended":false}));
 
 
-app.use(express.static('public'))
+app.use(bodyParser.json());
+
+
+app.use(express.static('public'));
 
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path} - ${req.ip}`);
@@ -32,9 +33,9 @@ app.get('/', (req, res) => {
 // Not found middleware
 
 
-app.use((req, res, next) => {
-  return next({status: 404, message: 'not found'})
-})
+// app.use((req, res, next) => {
+//   return next({status: 404, message: 'not found'})
+// })
 
 
 // Error Handling middleware
@@ -56,6 +57,42 @@ app.use((err, req, res, next) => {
     .send(errMessage)
 })
 
-const listener = app.listen(process.env.PORT || 3000, () => {
+let personSchema = new mongoose.Schema({
+  username: String,
+
+  exercise: { description: String,
+              duration: Number,
+              date: {type : Date, default: Date.now} }
+  
+});
+
+let Person = mongoose.model("Person", personSchema);
+
+const createPerson = (name, done) => {
+  let objPerson = new Person({
+    username: name
+  });
+  objPerson.save((err, data) => {
+    if(err) {
+      return console.error(err);
+    }
+    console.log("save successfully");
+    done(null, data);
+  
+  }); 
+
+}
+app.post("/api/exercise/new-user", (req, res, done) => {
+  console.log(req.body);
+  createPerson(req.body.username, (err, people) => {
+    if(err) return console.error(err);
+    console.log("create successfully!");
+    done(null, people);
+  })
+  
+
+ 
+});
+const listener = app.listen(8080, () => {
   console.log('Your app is listening on port ' + listener.address().port)
 })
