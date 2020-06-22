@@ -84,10 +84,26 @@ const createPerson = (name, done) => {
 }
 app.post("/api/exercise/new-user", (req, res, done) => {
   console.log(req.body);
-  createPerson(req.body.username, (err, people) => {
-    if(err) return console.error(err);
-    console.log("create successfully!");
-    done(null, people);
+  
+  const checkID = new Promise((resolve, reject) => {
+    const checker = Person.exists({username: req.body.username});
+    if(checker) {
+      resolve(checker);
+    } else {
+      reject("USERNAME ALREADY EXISTS!")
+    }
+  }).then(result => {
+    console.log(`Does this username already exist? ${result}`);
+    if(!result) {
+      createPerson(req.body.username, (err, people) => {
+        if(err) return console.error(err);
+        console.log("create successfully!");
+        res.json({"status":"successfully created!"});
+        done(null, people);
+  })
+    } else {
+      res.json({"error":"This username already exists!"});
+    }
   })
   
 
