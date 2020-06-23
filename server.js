@@ -60,9 +60,9 @@ app.use((err, req, res, next) => {
 let personSchema = new mongoose.Schema({
   username: String,
 
-  exercise: { description: {type: String, default: ""},
+  exercise: [{ description: {type: String, default: ""},
               duration: {type: Number, default: 0},
-              date: {type : Date, default: Date.now} }
+              date: {type : Date, default: Date.now} }]
   
 });
 
@@ -88,13 +88,10 @@ var findPersonAndUpdate = (id,
   Nduration = 0,
   Ndate = Date.now,
   done) => {
-    const update = { username : "wtfisthis"};
+    let updater = { description : Ndescription, duration: Nduration, date: Ndate};
     Person.findOneAndUpdate(
-      {'_id':id},               
-      { "$set": {'exercise.description' : Ndescription,
-      'exercise.duration' : Nduration,
-      'exercise.date': Ndate,
-      username: "wtfisthis3"}},
+      {'_id':id},
+      { $push : {exercise: updater}},
       (err, people) => {
       if(err) {
         console.error(err);
