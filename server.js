@@ -60,8 +60,8 @@ app.use((err, req, res, next) => {
 let personSchema = new mongoose.Schema({
   username: String,
 
-  exercise: { description: String,
-              duration: Number,
+  exercise: { description: {type: String, default: ""},
+              duration: {type: Number, default: 0},
               date: {type : Date, default: Date.now} }
   
 });
@@ -81,7 +81,31 @@ const createPerson = (name, done) => {
   
   }); 
 
-}
+};
+
+var findPersonAndUpdate = (id, 
+    Ndescription = "blank",
+  Nduration = 0,
+  Ndate = Date.now,
+  done) => {
+    const update = { username : "wtfisthis"};
+    Person.findOneAndUpdate(
+      {'_id':id},               
+      { "$set": {'exercise.description' : Ndescription,
+      'exercise.duration' : Nduration,
+      'exercise.date': Ndate,
+      username: "wtfisthis3"}},
+      (err, people) => {
+      if(err) {
+        console.error(err);
+        } 
+      console.log("update successfully");
+      done(null, people);
+      }
+    );
+  }; 
+
+
 app.post("/api/exercise/new-user", (req, res, done) => {
   console.log(req.body);
   
@@ -98,17 +122,46 @@ app.post("/api/exercise/new-user", (req, res, done) => {
       createPerson(req.body.username, (err, people) => {
         if(err) return console.error(err);
         console.log("create successfully!");
-        res.json({"status":"successfully created!"});
+        res.json({"status":"successfully created!",
+        "username": people.username,
+        "userID": people._id});
         done(null, people);
   })
     } else {
       res.json({"error":"This username already exists!"});
     }
   })
-  
-
- 
 });
+  
+app.post("/api/exercise/add", (req, res, done) => { 
+  console.log(req.body);
+  const check_ID = new Promise((resolve, reject) => {
+    const checker = Person.exists({_id: req.body.userId});
+    if(checker) {
+      resolve(checker);
+    } else {
+      reject("userID is invalid");
+    } 
+  }).then(result => {
+    console.log(`Does this ID exists? ${result}`);
+    if(result) {
+      console.log("We is here");
+      findPersonAndUpdate(req.body.userId, 
+      req.body.description,
+      req.body.duration,
+      req.body.date,
+      (err, people) => {
+        if(err) return console.error(err);
+        console.log('We here');
+        done(null, people);
+      });
+    } else {
+      res.json({"error":"This ID doesn't exists!"})
+    }
+  }).catch(error => { console.log(error);});
+
+});
+ 
 const listener = app.listen(8080, () => {
   console.log('Your app is listening on port ' + listener.address().port)
 })
