@@ -119,9 +119,9 @@ app.post("/api/exercise/new-user", (req, res, done) => {
       createPerson(req.body.username, (err, people) => {
         if(err) return console.error(err);
         console.log("create successfully!");
-        res.json({"status":"successfully created!",
+        res.json({
         "username": people.username,
-        "userID": people._id});
+        "_id": people._id});
         done(null, people);
   })
     } else {
@@ -150,14 +150,20 @@ app.post("/api/exercise/add", (req, res, done) => {
       (err, people) => {
         if(err) return console.error(err);
         console.log('We here');
+        res.json(people);
         done(null, people);
       });
     } else {
-      res.json({"error":"This ID doesn't exists!"})
+      res.json({"error":"This USERNAME doesn't exists!"})
     }
   }).catch(error => { console.log(error);});
 
 });
+
+app.get("/api/exercise/users", async (req, res, done) => {
+  let listOfUsers = await Person.find({});
+  res.json(listOfUsers);
+})
  
 const listener = app.listen(8080, () => {
   console.log('Your app is listening on port ' + listener.address().port)
