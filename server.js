@@ -162,7 +162,7 @@ app.post("/api/exercise/add", (req, res, done) => {
 
 app.get("/api/exercise/users", async (req, res, done) => {
   let listOfUsers = await Person.find({});
-  res.json(listOfUsers);
+  res.json(listOfUsers.map( ({_id, username}) => ({_id, username})));
 })
  
 const listener = app.listen(8080, () => {
